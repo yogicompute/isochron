@@ -1,0 +1,20 @@
+{
+  "name": "isochron",
+  "private": "true",
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "dev:server": "tsx packages/server/src/tcp-hello.ts",
+    "dev:client": "tsx packages/client-sdk/src/tcp-hello-client.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}

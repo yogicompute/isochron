@@ -1,0 +1,8 @@
+{
+    "name": "@isochron/server",
+    "version": "0.0.0",
+    "type": "module",
+    "dependencies": {
+        "@isochron/protocol":"*"
+    }
+}
