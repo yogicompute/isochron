@@ -9,8 +9,10 @@
     "tools/*"
   ],
   "scripts": {
-    "dev:server": "tsx packages/server/src/tcp-hello.ts",
-    "dev:client": "tsx packages/client-sdk/src/tcp-hello-client.ts"
+    "dev:server:tcp": "tsx packages/server/src/tcp-hello.ts",
+    "dev:server": "tsx packages/server/src/ws-server.ts",
+    "dev:client": "tsx packages/client-sdk/src/tcp-hello-client.ts",
+    "dev:web": "npm run dev --workspace @isochron/web-client"
   },
   "devDependencies": {
     "@types/node": "^26.4.1",
