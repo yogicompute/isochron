@@ -4,6 +4,9 @@ import { DEFAULT_WS_PORT, type PingMsg } from "@isochron/protocol";
 import { now } from "@isochron/clock";
 import { ConnectionManager } from "./connection-manager.js";
 import { publish } from "./publish.js";
+import { revealRound } from "./reveal.js";
+import { recordAck } from "./round.js";
+
 
 const conns = new ConnectionManager();
 
@@ -33,6 +36,13 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  if(req.method === "POST" && req.url === "/blink") {
+    const round = revealRound(conns, {mode: "blink"})
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok:true, roundId: round.roundId, revealAt: round.revealAt }));
+    return;
+  }
+
   res.writeHead(404).end("not found");
 });
 
@@ -52,6 +62,8 @@ wss.on("connection", (ws) => {
       ws.send(JSON.stringify(reply));
     } else if (msg.type === "clock") {
       client.report = { rtt: msg.rtt, offset: msg.offset, owd: msg.owd, jitter: msg.jitter };
+    }else if (msg.type === "reveal-ack") {
+      recordAck(msg.roundId, {id: client.id, revealedAtServer: msg.revealedAtServer});
     }
   });
 

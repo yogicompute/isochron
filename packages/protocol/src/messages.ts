@@ -1,6 +1,26 @@
 export interface PingMsg {type: "ping"; t1: number}
 export interface PongMsg {type: "pong"; t1: number; t2: number; t3: number}
 
+export interface RevealMsg {
+    type: "reveal";
+    roundId: string;
+    revealAt: number;
+    payload: unknown;
+}
+
+export interface RevealAck{
+    type: "reveal-ack";
+    roundId: string;
+    revealedAtServer: number
+}
+
+export interface RoundResult{
+    type: "round-result";
+    roundId: string;
+    spreadMs: number;
+    count: number;
+    mode: string;
+}
 export interface ClockReport{
     type: "clock",
     rtt: number;

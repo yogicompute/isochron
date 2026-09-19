@@ -1,6 +1,8 @@
 import "./style.css";
 import type { Envelope, PongMsg } from "@isochron/protocol";
 import { ClientClock } from "./clock.js";
+import { scheduleAt, now } from "@isochron/clock";
+import type { RevealMsg } from "@isochron/protocol";
 
 const WS_URL = "ws://localhost:3001";
 const card = document.getElementById("card")!;
@@ -42,6 +44,32 @@ function connect(): void {
         card.className = "idle";
         label.textContent = "waiting for event…";
       }, 1500);
+      return;
+    }
+
+    if (msg.type === "reveal") {
+      const m = msg as unknown as RevealMsg;
+      const localTarget = m.revealAt - clock.estimator.offset
+
+      scheduleAt(localTarget, ()=>{
+        card.className = "flip"
+        label.textContent = (m.payload as { text?: string })?.text ?? "◉ REVEAL";
+        ws.send(JSON.stringify({
+          type: "reveal-ack",
+          roundId: m.roundId,
+          revealedAtServer: clock.serverNow()
+        }))
+        if(resetTimer) clearTimeout(resetTimer)
+          resetTimer = window.setTimeout(()=>{
+          card.className = "idle";
+          label.textContent = "waiting for event…";
+        }, 1200)
+      })
+      return;
+    }
+
+    if (msg.type === "reveal-result"){
+      meta.textContent = `round ${msg.roundId}: spread ${msg.spreadMs}ms across ${msg.count} clients`;
       return;
     }
   });
