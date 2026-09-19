@@ -21,7 +21,7 @@ const httpServer = http.createServer((req, res) => {
   if (req.method === "OPTIONS") { res.writeHead(204).end(); return; }
 
   if (req.method === "GET" && req.url === "/stats") {
-    const rows = conns.list().map((c) => ({ id: c.id, ...(c.report ?? {}) }));
+    const rows = conns.list().map((c) => ({ id: c.id, edge: c.isEdge ?? false, region: c.region, ...(c.report ?? {}) }));
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ clients: conns.size, rows }, null, 2));
     return;
@@ -99,6 +99,18 @@ wss.on("connection", (ws) => {
       client.report = { rtt: msg.rtt, offset: msg.offset, owd: msg.owd, jitter: msg.jitter };
     }else if (msg.type === "reveal-ack") {
       recordAck(msg.roundId, {id: client.id, revealedAtServer: msg.revealedAtServer});
+    }else if (msg.type === "edge-hello") {
+      client.isEdge = true;
+      client.region = msg.region;
+      console.log(`[server] edge '${msg.region}' registered as ${client.id}`);
+    } else if (msg.type === "edge-report") {
+      client.report = { rtt: 0, offset: 0, owd: msg.owd, jitter: 0 };
+    } else if (msg.type === "ping") {
+      ws.send(JSON.stringify({ type: "pong", t1: msg.t1, t2, t3: now() }));
+    } else if (msg.type === "clock") {
+      client.report = { rtt: msg.rtt, offset: msg.offset, owd: msg.owd, jitter: msg.jitter };
+    } else if (msg.type === "reveal-ack") {
+      recordAck(msg.roundId, { id: msg.id ?? client.id, revealedAtServer: msg.revealedAtServer });
     }
   });
 

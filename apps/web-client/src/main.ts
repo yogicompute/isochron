@@ -4,7 +4,10 @@ import { ClientClock } from "./clock.js";
 import { scheduleAt, now } from "@isochron/clock";
 import type { RevealMsg } from "@isochron/protocol";
 
-const WS_URL = "ws://localhost:3001";
+const params = new URLSearchParams(location.search);
+const WS_PORT = params.get("port") ?? "3101"
+
+const WS_URL = `ws://localhost:${WS_PORT}`;
 const card = document.getElementById("card")!;
 const label = document.getElementById("label")!;
 const meta = document.getElementById("meta")!;

@@ -1,0 +1,12 @@
+{
+  "name": "@isochron/edge",
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@isochron/protocol": "*",
+    "@isochron/clock": "*",
+    "@isochron/sim": "*",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": { "@types/ws": "^8.5.13" }
+}

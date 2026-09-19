@@ -5,6 +5,8 @@ export interface Client{
     id: string;
     ws: WebSocket;
     report: Omit<ClockReport, "type"> | null;
+    isEdge?: boolean;
+    region?: string;
 }
 
 export class ConnectionManager{
