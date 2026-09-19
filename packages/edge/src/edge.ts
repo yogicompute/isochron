@@ -3,8 +3,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { now, computeSync, ClockEstimator } from "@isochron/clock";
 import { delayedSend } from "@isochron/sim";
 
-const ORIGIN_URL = process.env.ORIGIN_URL ?? "ws://localhost:7001";
-const EDGE_PORT = Number(process.env.EDGE_PORT ?? 7101);
+const ORIGIN_URL = process.env.ORIGIN_URL ?? "ws://localhost:3001";
+const EDGE_PORT = Number(process.env.EDGE_PORT ?? 3101);
 const REGION = process.env.REGION ?? "edge";
 const DOWN_DELAY_MS = Number(process.env.DOWN_DELAY_MS ?? 0); // simulated edge<->client latency
 
