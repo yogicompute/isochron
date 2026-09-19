@@ -1,11 +1,12 @@
 import http from "node:http";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer} from "ws";
 import { DEFAULT_WS_PORT, type PingMsg } from "@isochron/protocol";
 import { now } from "@isochron/clock";
 import { ConnectionManager } from "./connection-manager.js";
-import { publish } from "./publish.js";
 import { revealRound } from "./reveal.js";
 import { recordAck } from "./round.js";
+import { publishNaive } from "./publish.js";
+import { pickHorizon } from "./scheduler.js";
 
 
 const conns = new ConnectionManager();
@@ -23,15 +24,32 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
-  if (req.method === "POST" && req.url === "/publish") {
+  if (req.method === "POST" && req.url === "/publish" || req.url === "/publish-fair") {
+    const fair = req.url === "/publish-fair"
     let raw = ""; req.on("data", (c) => (raw += c));
     req.on("end", () => {
       let body: unknown;
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = { text: raw }; }
-      const msg = publish(conns, body);
-      console.log(`[server] published seq=${msg.seq} -> ${conns.size} client(s)`);
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ ok: true, seq: msg.seq, recipients: conns.size }));
+      
+      if (fair) {
+        const horizonMs = pickHorizon(conns)
+        const round = revealRound(conns, {payload: body, mode: "fair", horizonMs})
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          ok: true,
+          mode: "fair",
+          roundId: round.roundId,
+          horizonMs
+        }))
+      } else{
+        const { round } = publishNaive(conns, body);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          ok: true, 
+          mode: "naive",
+          roundId: round.roundId,
+        }))
+      }
     });
     return;
   }

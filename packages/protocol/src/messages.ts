@@ -34,6 +34,7 @@ export interface Envelope <T=unknown>{
     seq: number;
     ts: number;
     body: T;
+    roundId?: string;
 }
 
 export function encode(msg: Envelope): string{

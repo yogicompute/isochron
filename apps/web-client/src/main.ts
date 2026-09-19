@@ -39,6 +39,13 @@ function connect(): void {
       label.textContent = b.body?.text ?? `event #${b.seq}`;
       const trueDelay = clock.serverNow() - b.ts; // clock-corrected — trustworthy now
       meta.textContent = `seq ${b.seq} · ${trueDelay.toFixed(1)}ms after server send`;
+      if (b.roundId) {
+        ws.send(JSON.stringify({
+          type: "reveal-ack",
+          roundId: b.roundId,
+          revealedAtServer: clock.serverNow()
+        }))
+      }
       if (resetTimer) clearTimeout(resetTimer);
       resetTimer = window.setTimeout(() => {
         card.className = "idle";
@@ -68,8 +75,11 @@ function connect(): void {
       return;
     }
 
-    if (msg.type === "reveal-result"){
-      meta.textContent = `round ${msg.roundId}: spread ${msg.spreadMs}ms across ${msg.count} clients`;
+    if (msg.type === "round-result"){
+      stats.textContent = `[${msg.mode}] spread ${msg.spreadMs}ms across ${msg.count} clients` + (stats.dataset.other ?? "")
+      const line = `[${msg.mode}] ${msg.spreadMs}ms`
+      stats.dataset[msg.mode === "naive" ? "naive" : "fair"] = line
+      stats.textContent = `[${stats.dataset.naive ?? "[naive] -"}    vs ${stats.dataset.fair ?? "[fair] -"}]`
       return;
     }
   });
