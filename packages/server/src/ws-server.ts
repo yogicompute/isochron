@@ -7,6 +7,9 @@ import { revealRound } from "./reveal.js";
 import { recordAck } from "./round.js";
 import { publishNaive } from "./publish.js";
 import { pickHorizon } from "./scheduler.js";
+import { registry, clientsGauge } from "./metrics.js";
+import { config } from "./config.js";
+
 
 
 const conns = new ConnectionManager();
@@ -24,6 +27,25 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+    if (req.method === "GET" && req.url === "/metrics") {
+    registry.metrics().then((body) => {
+      res.writeHead(200, { "Content-Type": registry.contentType });
+      res.end(body);
+    });
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/config") {
+    let raw = ""; req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      try { Object.assign(config, JSON.parse(raw)); } catch { /* ignore */ }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, config }));
+    });
+    return;
+  }
+
+
   if (req.method === "POST" && req.url === "/publish" || req.url === "/publish-fair") {
     const fair = req.url === "/publish-fair"
     let raw = ""; req.on("data", (c) => (raw += c));
@@ -31,16 +53,10 @@ const httpServer = http.createServer((req, res) => {
       let body: unknown;
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = { text: raw }; }
       
-      if (fair) {
-        const horizonMs = pickHorizon(conns)
-        const round = revealRound(conns, {payload: body, mode: "fair", horizonMs})
+       if (fair) {
+        const { round, plan } = revealRound(conns, { payload: body, mode: "fair" });
         res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          ok: true,
-          mode: "fair",
-          roundId: round.roundId,
-          horizonMs
-        }))
+        res.end(JSON.stringify({ ok: true, mode: "fair", roundId: round.roundId, horizonMs: plan.horizonMs }));
       } else{
         const { round } = publishNaive(conns, body);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -54,12 +70,12 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
-  if(req.method === "POST" && req.url === "/blink") {
-    const round = revealRound(conns, {mode: "blink"})
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ ok:true, roundId: round.roundId, revealAt: round.revealAt }));
-    return;
-  }
+  // if(req.method === "POST" && req.url === "/blink") {
+  //   const round = revealRound(conns, {mode: "blink"})
+  //   res.writeHead(200, { "Content-Type": "application/json" });
+  //   res.end(JSON.stringify({ ok:true, roundId: round.roundId, revealAt: round.revealAt }));
+  //   return;
+  // }
 
   res.writeHead(404).end("not found");
 });
@@ -68,6 +84,7 @@ const wss = new WebSocketServer({ server: httpServer });
 
 wss.on("connection", (ws) => {
   const client = conns.add(ws);
+  clientsGauge.set(conns.size);
   console.log(`[server] ${client.id} connected (${conns.size} total)`);
 
   ws.on("message", (data) => {
@@ -87,6 +104,7 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     conns.remove(ws);
+    clientsGauge.set(conns.size);
     console.log(`[server] ${client.id} disconnected (${conns.size} total)`);
   });
   ws.on("error", (err) => console.error(`[server] ws error: ${err.message}`));

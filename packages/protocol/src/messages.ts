@@ -19,6 +19,8 @@ export interface RoundResult{
     roundId: string;
     spreadMs: number;
     count: number;
+    dropped?: number;
+    horizonMs: number;
     mode: string;
 }
 export interface ClockReport{

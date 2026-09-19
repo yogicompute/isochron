@@ -75,11 +75,12 @@ function connect(): void {
       return;
     }
 
-    if (msg.type === "round-result"){
-      stats.textContent = `[${msg.mode}] spread ${msg.spreadMs}ms across ${msg.count} clients` + (stats.dataset.other ?? "")
-      const line = `[${msg.mode}] ${msg.spreadMs}ms`
-      stats.dataset[msg.mode === "naive" ? "naive" : "fair"] = line
-      stats.textContent = `[${stats.dataset.naive ?? "[naive] -"}    vs ${stats.dataset.fair ?? "[fair] -"}]`
+    if (msg.type === "round-result") {
+      const drop = msg.dropped ? `, ${msg.dropped} dropped` : "";
+      const hz = msg.horizonMs != null ? `, horizon ${msg.horizonMs}ms` : "";
+      stats.dataset[msg.mode === "naive" ? "naive" : "fair"] =
+        `[${msg.mode}] ${msg.spreadMs}ms (${msg.count} on-time${drop}${hz})`;
+      stats.textContent = `${stats.dataset.naive ?? "[naive] —"}\n${stats.dataset.fair ?? "[fair] —"}`;
       return;
     }
   });
