@@ -4,6 +4,7 @@
     "type": "module",
     "dependencies": {
         "@isochron/protocol":"*",
+        "@isochron/clock":"*",
         "ws":"^8.18.0"
     },
     "devDependencies": {

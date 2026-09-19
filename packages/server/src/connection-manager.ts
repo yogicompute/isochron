@@ -1,21 +1,30 @@
-import type { WebSocket} from "ws"
+import { WebSocket} from "ws"
+import type { ClockReport } from "@isochron/protocol"
 
-export class ConnectionManager {
-    private clients = new Set<WebSocket>();
+export interface Client{
+    id: string;
+    ws: WebSocket;
+    report: Omit<ClockReport, "type"> | null;
+}
 
-    add(ws: WebSocket): void{
-        this.clients.add(ws)
+export class ConnectionManager{
+    private clients = new Map<WebSocket, Client>();
+    private seq = 0
+
+    add(ws: WebSocket): Client{
+        const client: Client = {id : `c${++this.seq}`, ws, report: null}
+        
+        this.clients.set(ws, client)
+        return client
     }
 
-    remove(ws: WebSocket): void{
-        this.clients.delete(ws)
-    }
+    remove(ws: WebSocket): void{ this.clients.delete(ws) }
+    
+    get(ws: WebSocket): Client | undefined{ return this.clients.get(ws) }
 
-    get size(): number{
-        return this.clients.size
-    }
+    get size(): number{ return this.clients.size }
 
-    forEach(fn: (ws: WebSocket)=> void): void{
-        this.clients.forEach(fn)
-    }
+    forEach(fn: (c:Client) => void): void{ this.clients.forEach(fn) }
+
+    list(): Client[]{ return [...this.clients.values()] }
 }

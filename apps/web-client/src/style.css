@@ -11,6 +11,7 @@ body {
   text-align: center; gap: 12px; padding: 24px;
   transition: transform 120ms ease, background 120ms ease;
 }
+#stats { margin-top: 16px; font-size: 12px; opacity: 0.7; font-variant-numeric: tabular-nums; }
 #card.idle { background: #161b22; transform: scale(1); }
 #card.flip { background: #d4351c; transform: scale(1.06); }
 #label { font-size: clamp(28px, 6vw, 56px); font-weight: 800; }

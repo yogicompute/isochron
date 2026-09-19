@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@isochron/clock": "*",
         "@isochron/protocol": "*"
     },
     "devDependencies": {
