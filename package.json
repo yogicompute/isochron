@@ -11,11 +11,10 @@
     "dev:server": "tsx packages/server/src/ws-server.ts",
     "dev:web": "npm run dev --workspace @isochron/web-client",
     "dev:edge:us": "EDGE_PORT=3101 REGION=us DOWN_DELAY_MS=40 tsx packages/edge/src/edge.ts",
-    "dev:edge:eu": "EDGE_PORT=3102 REGION=eu DOWN_DELAY_MS=140 tsx packages/edge/src/edge.ts"
-
+    "dev:edge:eu": "EDGE_PORT=3102 REGION=eu DOWN_DELAY_MS=140 tsx packages/edge/src/edge.ts",
+    "verify": "tsx tools/verify-cli/src/index.ts"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }
